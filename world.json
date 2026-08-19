@@ -1,5 +1,5 @@
 {
-  "updated": 1787155996910,
+  "updated": 1787158976568,
   "creatures": [
     {
       "n": "Сямеби",
@@ -23,7 +23,12 @@
         "state": 2,
         "result": 2,
         "rhythm": 2,
-        "wish": "person"
+        "wish": "person",
+        "props": [
+          "desk",
+          "papers",
+          "plantpot"
+        ]
       }
     }
   ]
