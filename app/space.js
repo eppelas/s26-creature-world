@@ -458,7 +458,10 @@
     if (p.props && p.props.length) {
       return p.props.filter(function (id) { return PROPS[id]; }).slice(0, 4);
     }
-    return propsFromThemes(themesOf(p.aboutText || p.about || ''));
+    var byWords = propsFromThemes(themesOf(p.aboutText || p.about || ''));
+    if (byWords.length) return byWords;
+    /* ничего не опознали — пусть место всё равно будет обжитым, а не голым */
+    return ['desk', 'papers', 'plantpot'];
   }
 
   function spaceOf(project) {
