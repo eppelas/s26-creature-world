@@ -1,0 +1,162 @@
+<meta charset="utf-8">
+<title>Существо</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="https://telegram.org/js/telegram-web-app.js?63"></script>
+
+<style>
+  :root {
+    --bg: var(--tg-theme-bg-color, #ffffff);
+    --card: var(--tg-theme-secondary-bg-color, #f6f5f2);
+    --ink: var(--tg-theme-text-color, #171717);
+    --ink2: var(--tg-theme-hint-color, #6b6862);
+    --link: var(--tg-theme-link-color, #b5482f);
+    --line: rgba(128, 122, 112, 0.22);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.55 ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 0 0 2.5rem; }
+  .stage { position: relative; cursor: pointer; user-select: none; }
+  .stage canvas { display: block; width: 100%; }
+  .bubble {
+    position: absolute; left: 50%; top: 8%; transform: translateX(-50%) translateY(-6px);
+    background: rgba(23, 23, 23, 0.9); color: #f2efe9;
+    font-size: 13px; line-height: 1.35; padding: 8px 12px; border-radius: 14px;
+    max-width: 78%; text-align: center; opacity: 0; transition: opacity .25s, transform .25s;
+    pointer-events: none;
+  }
+  .bubble.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .head { padding: 1.1rem 1.2rem 0; }
+  h1 { font-size: 1.45rem; line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 .2em; }
+  .sub { color: var(--ink2); font-size: .88rem; margin: 0; }
+  .bars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+          background: var(--line); border-top: 1px solid var(--line);
+          border-bottom: 1px solid var(--line); margin: 1.1rem 0 0; }
+  .bar { background: var(--bg); padding: .7rem .9rem; }
+  .bar b { display: block; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+  .bar span { font-size: .68rem; text-transform: uppercase; letter-spacing: .07em; color: var(--ink2); }
+  section { padding: 1.3rem 1.2rem 0; }
+  h2 { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em;
+       color: var(--ink2); margin: 0 0 .5rem; font-weight: 600; }
+  .quote { border-left: 2px solid var(--line); padding-left: .8rem; margin: 0; }
+  .want { background: var(--card); padding: .9rem 1rem; border-radius: 12px; margin: 0; }
+  ul.log { list-style: none; margin: 0; padding: 0; }
+  ul.log li { padding: .4rem 0; border-bottom: 1px solid var(--line); font-size: .9rem; }
+  ul.log li span { color: var(--ink2); font-variant-numeric: tabular-nums; margin-right: .5rem; }
+  .cta { display: block; width: calc(100% - 2.4rem); margin: 1.6rem 1.2rem 0;
+         padding: .85rem; text-align: center; border: 0; border-radius: 12px;
+         background: var(--link); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+  .empty { padding: 3rem 1.2rem; color: var(--ink2); text-align: center; }
+</style>
+
+<div class="wrap" id="wrap"></div>
+
+<script src="creature.js"></script>
+<script src="space.js"></script>
+<script src="voxel-canvas.js"></script>
+<script>
+(function () {
+  'use strict';
+  var tg = window.Telegram && window.Telegram.WebApp;
+  if (tg) { tg.ready(); tg.expand(); }
+
+  function decode() {
+    var raw = (location.hash || '').replace(/^#s=/, '') ||
+              new URLSearchParams(location.search).get('s') || '';
+    if (!raw) return null;
+    try {
+      var b64 = raw.replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4) b64 += '=';
+      var bin = atob(b64);
+      var bytes = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return JSON.parse(new TextDecoder().decode(bytes));
+    } catch (err) {
+      return null;
+    }
+  }
+
+  var d = decode();
+  var wrap = document.getElementById('wrap');
+  if (!d) {
+    wrap.innerHTML = '<p class="empty">Здесь живёт чьё-то существо, но ссылка пустая.<br>Открой мини-апп кнопкой из бота.</p>';
+    return;
+  }
+
+  var genome = { body: d.g[0], legs: d.g[1], ant: d.g[2], eye: d.g[3], pal: d.g[4], tempo: d.g[5] };
+  var traits = Creature.deriveTraits(genome, d.s);
+  var project = d.p || {};
+
+  var esc = function (s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  };
+
+  wrap.innerHTML = [
+    '<div class="stage" id="stage"><canvas id="cv"></canvas><div class="bubble" id="bubble"></div></div>',
+    '<div class="head">',
+    '<h1>' + esc(d.n) + '</h1>',
+    '<p class="sub">' + esc(d.sp) + '</p>',
+    '</div>',
+    '<div class="bars">',
+    '<div class="bar"><b>' + esc(d.stName) + '</b><span>стадия</span></div>',
+    '<div class="bar"><b>' + d.at + '</b><span>внимания</span></div>',
+    '<div class="bar"><b>' + esc(d.fade) + '</b><span>состояние</span></div>',
+    '</div>',
+    project.aboutText ? '<section><h2>Пространство</h2><p class="quote">' + esc(project.aboutText) + '</p></section>' : '',
+    d.want ? '<section><h2>Чего он хочет</h2><p class="want">' + esc(d.want) + '</p></section>' : '',
+    (d.log && d.log.length)
+      ? '<section><h2>Чем занимались</h2><ul class="log">' +
+        d.log.map(function (e) { return '<li><span>' + esc(e.d) + '</span>' + esc(e.t) + '</li>'; }).join('') +
+        '</ul></section>'
+      : '<section><h2>Чем занимались</h2><p class="sub">Пока ничего не записано.</p></section>',
+    '<button class="cta" id="back">Написать ему</button>'
+  ].join('');
+
+  var canvas = document.getElementById('cv');
+  var scene = VoxelCanvas.makeScene(canvas, {
+    genome: genome, traits: traits, stage: d.st, vitality: d.v, project: project
+  }, { ratio: 0.66 });
+
+  /* Тычок: существо подпрыгивает и что-нибудь говорит. */
+  var LINES = [
+    'о',
+    'я тут',
+    'ещё разок',
+    'щекотно',
+    'работаем?',
+    'я расту, когда ты приходишь',
+    'что сегодня сдвинулось?',
+    'не бросай',
+    'ага'
+  ];
+  var pokeAt = -1e9, said = 0;
+  var bubble = document.getElementById('bubble');
+  var bubbleUntil = 0;
+
+  document.getElementById('stage').addEventListener('pointerdown', function () {
+    pokeAt = performance.now();
+    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+    if (Math.random() < 0.7) {
+      bubble.textContent = LINES[(said++) % LINES.length];
+      bubble.classList.add('on');
+      bubbleUntil = performance.now() + 1800;
+    }
+  });
+
+  document.getElementById('back').addEventListener('click', function () {
+    if (tg && tg.close) tg.close();
+    else history.back();
+  });
+
+  function loop(now) {
+    var poke = (now - pokeAt) / 520;
+    scene.frame(now, poke >= 0 && poke <= 1 ? poke : 0);
+    if (bubbleUntil && now > bubbleUntil) { bubble.classList.remove('on'); bubbleUntil = 0; }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
