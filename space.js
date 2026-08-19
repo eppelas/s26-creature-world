@@ -77,148 +77,371 @@
     };
   }
 
-  var THEMES = [
-    {
-      id: 'photo',
-      re: /фото|съём|съем|снима|камер|плёнк|пленк|объектив|кадр|портрет|видео|монтаж|ролик/i,
-      draw: function (g, ink, warm, far) {
-        g.line(0, 0, -14, -46, ink, 3); g.line(0, 0, 14, -46, ink, 3); g.line(4, 0, 0, -46, ink, 2);
-        g.rect(-16, -64, 32, 20, warm);
-        g.path([[-16, -64], [16, -64], [16, -44], [-16, -44], [-16, -64]], ink, 2);
-        g.ellipse(2, -54, 7, 7, far); g.ellipse(2, -54, 3, 3, ink);
-        g.rect(-13, -68, 8, 4, ink);
+  /* Предметы — атомы пространства. Тема набирает из них два-четыре, поэтому
+     «телеграм-бот» и «дашборд» перестают быть одним и тем же монитором.
+     Координаты локальные: начало под предметом, высота примерно в рост. */
+  var PROPS = {
+    monitor: function (g, ink, warm, far) {
+      g.rect(-24, -46, 48, 32, warm);
+      g.path([[-24, -46], [24, -46], [24, -14], [-24, -14], [-24, -46]], ink, 2);
+      g.line(-16, -38, 6, -38, ink, 2); g.line(-16, -32, 14, -32, ink, 2); g.line(-16, -26, -2, -26, ink, 2);
+      g.line(0, -14, 0, -4, ink, 3); g.line(-14, -4, 14, -4, ink, 3);
+    },
+    laptop: function (g, ink, warm, far) {
+      g.poly([[-26, -4], [26, -4], [32, 0], [-32, 0]], far);
+      g.path([[-26, -4], [26, -4], [32, 0], [-32, 0], [-26, -4]], ink, 2);
+      g.rect(-24, -34, 48, 30, warm);
+      g.path([[-24, -34], [24, -34], [24, -4], [-24, -4], [-24, -34]], ink, 2);
+      g.line(-16, -26, 8, -26, ink, 2); g.line(-16, -20, 14, -20, ink, 2);
+    },
+    phone: function (g, ink, warm, far) {
+      g.rect(-11, -40, 22, 40, warm);
+      g.path([[-11, -40], [11, -40], [11, 0], [-11, 0], [-11, -40]], ink, 2);
+      g.line(-6, -33, 6, -33, ink, 2); g.line(-6, -27, 3, -27, ink, 2);
+      g.ellipse(0, -6, 3, 3, ink);
+    },
+    server: function (g, ink, warm, far) {
+      g.rect(-18, -70, 36, 70, far);
+      g.path([[-18, -70], [18, -70], [18, 0], [-18, 0], [-18, -70]], ink, 2);
+      for (var i = 0; i < 5; i++) {
+        g.line(-13, -62 + i * 13, 13, -62 + i * 13, ink, 2);
+        g.ellipse(10, -66 + i * 13, 2, 2, warm);
       }
     },
-    {
-      id: 'sound',
-      re: /музык|звук|трек|песн|альбом|запис.{0,3}звук|микрофон|подкаст|саунд|бит|синтез/i,
-      draw: function (g, ink, warm, far) {
-        g.line(-2, 0, -2, -52, ink, 3);
-        g.ellipse(-2, -58, 6, 8, ink);
-        g.path([[-12, 0], [8, 0]], ink, 3);
-        g.rect(22, -34, 22, 34, warm);
-        g.path([[22, -34], [44, -34], [44, 0], [22, 0], [22, -34]], ink, 2);
-        g.ellipse(33, -24, 6, 6, far); g.ellipse(33, -9, 3, 3, far);
-      }
+    terminal: function (g, ink, warm, far) {
+      g.rect(-24, -40, 48, 30, ink);
+      g.rect(-18, -34, 6, 6, warm);
+      g.line(-8, -31, 12, -31, warm, 2);
+      g.line(-18, -22, 4, -22, far, 2);
+      g.line(0, -10, 0, -3, ink, 3); g.line(-12, -3, 12, -3, ink, 3);
     },
-    {
-      id: 'text',
-      re: /текст|пиш|стать|книг|роман|сценар|блог|рассылк|редактур|перевод|дневник|эссе/i,
-      draw: function (g, ink, warm, far) {
-        g.rect(-26, -10, 40, 10, warm);
-        g.rect(-22, -19, 40, 9, warm);
-        g.rect(-25, -27, 38, 8, warm);
-        g.path([[-26, -10], [14, -10], [14, 0], [-26, 0], [-26, -10]], ink, 2);
-        g.path([[-25, -27], [13, -27], [13, -19]], ink, 2);
-        g.poly([[24, -14], [44, -20], [44, -2], [24, -2]], far);
-        g.path([[24, -14], [44, -20], [44, -2], [24, -2], [24, -14]], ink, 2);
-      }
+    dashboard: function (g, ink, warm, far) {
+      g.rect(-28, -44, 56, 34, warm);
+      g.path([[-28, -44], [28, -44], [28, -10], [-28, -10], [-28, -44]], ink, 2);
+      var h = [8, 16, 11, 22, 14];
+      for (var i = 0; i < 5; i++) g.rect(-22 + i * 9, -14 - h[i], 6, h[i], far);
+      g.line(0, -10, 0, -3, ink, 3); g.line(-12, -3, 12, -3, ink, 3);
     },
-    {
-      id: 'code',
-      re: /код|разработ|програм|бот|сервис|приложен|скрипт|бэкенд|фронт|api|дата|модел|нейрон|агент/i,
-      draw: function (g, ink, warm, far) {
-        g.rect(-24, -46, 48, 32, warm);
-        g.path([[-24, -46], [24, -46], [24, -14], [-24, -14], [-24, -46]], ink, 2);
-        g.line(-16, -38, 6, -38, ink, 2); g.line(-16, -32, 14, -32, ink, 2); g.line(-16, -26, -2, -26, ink, 2);
-        g.line(0, -14, 0, -4, ink, 3); g.line(-14, -4, 14, -4, ink, 3);
-        g.path([[26, -8], [38, -16], [50, -6]], far, 3);
-      }
+    browser: function (g, ink, warm, far) {
+      g.rect(-30, -48, 60, 40, warm);
+      g.path([[-30, -48], [30, -48], [30, -8], [-30, -8], [-30, -48]], ink, 2);
+      g.line(-30, -40, 30, -40, ink, 2);
+      for (var i = 0; i < 3; i++) g.ellipse(-24 + i * 6, -44, 2, 2, ink);
+      g.rect(-24, -34, 30, 6, far); g.rect(-24, -24, 44, 5, far);
+      g.line(0, -8, 0, -2, ink, 3); g.line(-10, -2, 10, -2, ink, 3);
     },
-    {
-      id: 'design',
-      re: /дизайн|интерфейс|макет|бренд|логотип|иллюстрац|верстк|типограф|сетк|ui|ux/i,
-      draw: function (g, ink, warm, far) {
-        g.rect(-22, -40, 40, 40, warm);
-        g.path([[-22, -40], [18, -40], [18, 0], [-22, 0], [-22, -40]], ink, 2);
-        g.line(-22, -27, 18, -27, far, 2); g.line(-22, -14, 18, -14, far, 2); g.line(-9, -40, -9, 0, far, 2);
-        g.line(26, -4, 34, -44, ink, 3);
-        g.poly([[33, -44], [37, -44], [35, -52]], ink);
-      }
+    chatbubble: function (g, ink, warm, far) {
+      g.line(0, 0, 0, -30, ink, 3);
+      g.rect(-24, -62, 48, 30, warm);
+      g.path([[-24, -62], [24, -62], [24, -32], [-24, -32], [-24, -62]], ink, 2);
+      g.poly([[-8, -32], [2, -32], [-4, -24]], warm);
+      g.path([[-8, -32], [-4, -24], [2, -32]], ink, 2);
+      g.line(-16, -54, 10, -54, far, 3); g.line(-16, -46, 2, -46, far, 3);
     },
-    {
-      id: 'teach',
-      re: /курс|лекц|обуч|учеб|студент|воркшоп|мастер.?класс|препода|программ.{0,4}обуч|лаборатор|школ/i,
-      draw: function (g, ink, warm, far) {
-        g.rect(-34, -52, 68, 40, far);
-        g.path([[-34, -52], [34, -52], [34, -12], [-34, -12], [-34, -52]], ink, 2);
-        g.line(-24, -40, 10, -40, warm, 3); g.line(-24, -30, 20, -30, warm, 3);
-        g.line(-26, -12, -26, 0, ink, 3); g.line(26, -12, 26, 0, ink, 3);
-        g.path([[44, 0], [44, -14], [56, -14]], ink, 3); g.line(44, -14, 44, -22, ink, 3);
-      }
+    robotarm: function (g, ink, warm, far) {
+      g.rect(-14, -10, 28, 10, far);
+      g.path([[-14, -10], [14, -10], [14, 0], [-14, 0], [-14, -10]], ink, 2);
+      g.line(0, -10, -10, -38, ink, 4);
+      g.line(-10, -38, 16, -52, ink, 4);
+      g.path([[16, -52], [24, -48]], ink, 3); g.path([[16, -52], [23, -58]], ink, 3);
+      g.ellipse(-10, -38, 4, 4, warm);
     },
-    {
-      id: 'research',
-      re: /исслед|ресёрч|ресерч|анализ|интервью|гипотез|данн|опрос|разбор|аудит|стратег/i,
-      draw: function (g, ink, warm, far) {
-        g.rect(-30, -54, 60, 44, warm);
-        g.path([[-30, -54], [30, -54], [30, -10], [-30, -10], [-30, -54]], ink, 2);
-        for (var i = 0; i < 3; i++)
-          for (var j = 0; j < 2; j++) g.rect(-24 + i * 18, -48 + j * 18, 12, 12, far);
-        g.line(0, -10, 0, 0, ink, 3);
-        g.ellipse(44, -22, 9, 9, far); g.path([[44, -22], [44, -22]], ink, 2);
-        g.line(50, -16, 58, -4, ink, 3);
-      }
-    },
-    {
-      id: 'body',
-      re: /тел[оа]|спорт|бег|йог|танц|練|здоров|практик|дыхан|медитац|сон|привычк/i,
-      draw: function (g, ink, warm, far) {
-        g.poly([[-38, 0], [-6, -8], [22, -8], [-10, 0]], warm);
-        g.path([[-38, 0], [-6, -8], [22, -8], [-10, 0], [-38, 0]], ink, 2);
-        g.line(26, -10, 52, -10, ink, 3);
-        g.rect(24, -18, 8, 16, ink); g.rect(48, -18, 8, 16, ink);
-      }
-    },
-    {
-      id: 'home',
-      re: /дом|ремонт|переезд|кварти|мастерск|стройк|обустро|мебел|дач/i,
-      draw: function (g, ink, warm, far) {
-        g.rect(-30, -22, 30, 22, warm);
-        g.path([[-30, -22], [0, -22], [0, 0], [-30, 0], [-30, -22]], ink, 2);
-        g.line(-30, -12, 0, -12, ink, 2);
-        g.rect(-24, -40, 22, 18, far);
-        g.path([[-24, -40], [-2, -40], [-2, -22], [-24, -22], [-24, -40]], ink, 2);
-        g.line(16, 0, 24, -46, ink, 3); g.line(38, 0, 30, -46, ink, 3);
-        for (var i = 1; i <= 3; i++) g.line(18 + i * 1.6, -i * 11, 36 - i * 1.6, -i * 11, ink, 2);
-      }
-    },
-    {
-      id: 'garden',
-      re: /сад|растен|огород|цвет|лес|природ|земл|посад|урожай|ферм/i,
-      draw: function (g, ink, warm, far) {
-        for (var i = 0; i < 3; i++) {
-          g.path([[-34 + i * 24, 0], [-28 + i * 24, -12], [-22 + i * 24, 0]], far, 3);
-          g.line(-28 + i * 24, 0, -28 + i * 24, -14, ink, 2);
+    gears: function (g, ink, warm, far) {
+      function gear(cx, cy, r) {
+        g.ellipse(cx, cy, r, r, far);
+        for (var i = 0; i < 8; i++) {
+          var a = i * Math.PI / 4;
+          g.line(cx + Math.cos(a) * r, cy + Math.sin(a) * r,
+                 cx + Math.cos(a) * (r + 4), cy + Math.sin(a) * (r + 4), ink, 3);
         }
-        g.rect(30, -20, 22, 16, warm);
-        g.path([[30, -20], [52, -20], [52, -4], [30, -4], [30, -20]], ink, 2);
-        g.path([[52, -16], [62, -22], [62, -18]], ink, 3);
+        g.ellipse(cx, cy, r * 0.35, r * 0.35, ink);
+      }
+      gear(-12, -30, 14); gear(14, -16, 9);
+    },
+    antenna: function (g, ink, warm, far) {
+      g.line(0, 0, 0, -66, ink, 3);
+      g.line(-12, -8, 12, -8, ink, 2);
+      for (var i = 1; i <= 3; i++) g.line(-10 + i * 2, -18 * i, 10 - i * 2, -18 * i, ink, 2);
+      g.ellipse(0, -70, 4, 4, warm);
+    },
+    dish: function (g, ink, warm, far) {
+      g.line(0, 0, 0, -30, ink, 3);
+      g.poly([[-18, -52], [18, -44], [10, -26], [-14, -32]], far);
+      g.path([[-18, -52], [18, -44], [10, -26], [-14, -32], [-18, -52]], ink, 2);
+      g.line(2, -38, 16, -56, ink, 2); g.ellipse(16, -56, 3, 3, ink);
+    },
+    cable: function (g, ink, warm, far) {
+      g.path([[-24, -46], [-12, -26], [0, -44], [12, -22], [24, -40]], ink, 3);
+      g.ellipse(-24, -46, 3, 3, far); g.ellipse(24, -40, 3, 3, far);
+    },
+    gamepad: function (g, ink, warm, far) {
+      g.rect(-24, -22, 48, 18, warm);
+      g.ellipse(-24, -13, 8, 9, warm); g.ellipse(24, -13, 8, 9, warm);
+      g.path([[-24, -22], [24, -22], [24, -4], [-24, -4], [-24, -22]], ink, 2);
+      g.ellipse(-12, -13, 4, 4, ink); g.ellipse(12, -13, 4, 4, ink);
+      g.line(0, -4, 0, 0, ink, 2);
+    },
+    tablet: function (g, ink, warm, far) {
+      g.poly([[-26, -6], [22, -14], [30, -6], [-18, 2]], warm);
+      g.path([[-26, -6], [22, -14], [30, -6], [-18, 2], [-26, -6]], ink, 2);
+      g.line(18, -18, 30, -40, ink, 3);
+      g.poly([[28, -40], [33, -41], [31, -48]], ink);
+    },
+    palette: function (g, ink, warm, far) {
+      g.ellipse(0, -14, 24, 14, warm);
+      g.path([[-24, -14], [-24, -14]], ink, 2);
+      g.ellipse(-12, -18, 4, 3, far); g.ellipse(0, -21, 4, 3, ink); g.ellipse(12, -17, 4, 3, far);
+      g.ellipse(8, -9, 5, 4, warm);
+    },
+    filmreel: function (g, ink, warm, far) {
+      g.ellipse(0, -22, 20, 20, far);
+      g.ellipse(0, -22, 5, 5, ink);
+      for (var i = 0; i < 6; i++) {
+        var a = i * Math.PI / 3;
+        g.ellipse(Math.cos(a) * 12, -22 + Math.sin(a) * 12, 4, 4, ink);
       }
     },
-    {
-      id: 'business',
-      re: /бизнес|клиент|продаж|запуск|деньг|выручк|магазин|услуг|заказ|агентств|стартап/i,
-      draw: function (g, ink, warm, far) {
-        g.rect(-30, -50, 60, 26, warm);
-        g.path([[-30, -50], [30, -50], [30, -24], [-30, -24], [-30, -50]], ink, 2);
-        g.line(-20, -24, -20, 0, ink, 3); g.line(20, -24, 20, 0, ink, 3);
-        g.line(-20, -40, 16, -40, far, 3); g.line(-20, -32, 6, -32, far, 3);
+    camera: function (g, ink, warm, far) {
+      g.line(0, 0, -14, -46, ink, 3); g.line(0, 0, 14, -46, ink, 3); g.line(4, 0, 0, -46, ink, 2);
+      g.rect(-16, -64, 32, 20, warm);
+      g.path([[-16, -64], [16, -64], [16, -44], [-16, -44], [-16, -64]], ink, 2);
+      g.ellipse(2, -54, 7, 7, far); g.ellipse(2, -54, 3, 3, ink);
+      g.rect(-13, -68, 8, 4, ink);
+    },
+    mic: function (g, ink, warm, far) {
+      g.line(-2, 0, -2, -52, ink, 3);
+      g.ellipse(-2, -58, 6, 8, ink);
+      g.path([[-12, 0], [8, 0]], ink, 3);
+    },
+    speaker: function (g, ink, warm, far) {
+      g.rect(-11, -34, 22, 34, warm);
+      g.path([[-11, -34], [11, -34], [11, 0], [-11, 0], [-11, -34]], ink, 2);
+      g.ellipse(0, -24, 6, 6, far); g.ellipse(0, -9, 3, 3, far);
+    },
+    easel: function (g, ink, warm, far) {
+      g.line(-18, 0, -4, -50, ink, 3); g.line(18, 0, 4, -50, ink, 3); g.line(0, -20, 0, 0, ink, 3);
+      g.rect(-22, -56, 44, 34, warm);
+      g.path([[-22, -56], [22, -56], [22, -22], [-22, -22], [-22, -56]], ink, 2);
+      g.poly([[-14, -28], [0, -48], [14, -28]], far);
+    },
+    papers: function (g, ink, warm, far) {
+      g.rect(-26, -10, 40, 10, warm); g.rect(-22, -19, 40, 9, warm); g.rect(-25, -27, 38, 8, warm);
+      g.path([[-26, -10], [14, -10], [14, 0], [-26, 0], [-26, -10]], ink, 2);
+      g.path([[-25, -27], [13, -27], [13, -19]], ink, 2);
+    },
+    books: function (g, ink, warm, far) {
+      g.rect(-30, -4, 60, 4, ink);
+      var h = [26, 32, 22, 30, 24, 28];
+      for (var i = 0; i < 6; i++) g.rect(-28 + i * 9, -4 - h[i], 7, h[i], i % 2 ? far : warm);
+      for (var j = 0; j < 6; j++) g.path([[-28 + j * 9, -4 - h[j]], [-21 + j * 9, -4 - h[j]]], ink, 1.5);
+    },
+    board: function (g, ink, warm, far) {
+      g.rect(-34, -52, 68, 40, far);
+      g.path([[-34, -52], [34, -52], [34, -12], [-34, -12], [-34, -52]], ink, 2);
+      g.line(-24, -40, 10, -40, warm, 3); g.line(-24, -30, 20, -30, warm, 3);
+      g.line(-26, -12, -26, 0, ink, 3); g.line(26, -12, 26, 0, ink, 3);
+    },
+    plantpot: function (g, ink, warm, far) {
+      g.poly([[-12, -14], [12, -14], [9, 0], [-9, 0]], warm);
+      g.path([[-12, -14], [12, -14], [9, 0], [-9, 0], [-12, -14]], ink, 2);
+      g.line(0, -14, 0, -40, ink, 2);
+      g.ellipse(-10, -34, 12, 7, far); g.ellipse(11, -44, 12, 7, far); g.ellipse(0, -52, 9, 9, far);
+    },
+    desk: function (g, ink, warm, far) {
+      g.rect(-34, -34, 68, 8, warm);
+      g.path([[-34, -34], [34, -34], [34, -26], [-34, -26], [-34, -34]], ink, 2);
+      g.line(-28, -26, -28, 0, ink, 3); g.line(28, -26, 28, 0, ink, 3);
+    },
+    boxes: function (g, ink, warm, far) {
+      g.rect(-30, -22, 30, 22, warm);
+      g.path([[-30, -22], [0, -22], [0, 0], [-30, 0], [-30, -22]], ink, 2);
+      g.line(-30, -12, 0, -12, ink, 2);
+      g.rect(-24, -40, 22, 18, far);
+      g.path([[-24, -40], [-2, -40], [-2, -22], [-24, -22], [-24, -40]], ink, 2);
+    },
+    ladder: function (g, ink, warm, far) {
+      g.line(-10, 0, -2, -46, ink, 3); g.line(12, 0, 4, -46, ink, 3);
+      for (var i = 1; i <= 3; i++) g.line(-8 + i * 1.6, -i * 11, 10 - i * 1.6, -i * 11, ink, 2);
+    },
+    mat: function (g, ink, warm, far) {
+      g.poly([[-38, 0], [-6, -8], [22, -8], [-10, 0]], warm);
+      g.path([[-38, 0], [-6, -8], [22, -8], [-10, 0], [-38, 0]], ink, 2);
+    },
+    dumbbell: function (g, ink, warm, far) {
+      g.line(-14, -10, 14, -10, ink, 3);
+      g.rect(-18, -18, 8, 16, ink); g.rect(10, -18, 8, 16, ink);
+    },
+    sign: function (g, ink, warm, far) {
+      g.rect(-30, -50, 60, 26, warm);
+      g.path([[-30, -50], [30, -50], [30, -24], [-30, -24], [-30, -50]], ink, 2);
+      g.line(-20, -24, -20, 0, ink, 3); g.line(20, -24, 20, 0, ink, 3);
+      g.line(-20, -40, 16, -40, far, 3); g.line(-20, -32, 6, -32, far, 3);
+    },
+    suitcase: function (g, ink, warm, far) {
+      g.rect(-22, -26, 44, 26, warm);
+      g.path([[-22, -26], [22, -26], [22, 0], [-22, 0], [-22, -26]], ink, 2);
+      g.path([[-8, -26], [-8, -34], [8, -34], [8, -26]], ink, 3);
+      g.line(-22, -14, 22, -14, ink, 2);
+    },
+    beds: function (g, ink, warm, far) {
+      for (var i = 0; i < 3; i++) {
+        g.path([[-34 + i * 24, 0], [-28 + i * 24, -12], [-22 + i * 24, 0]], far, 3);
+        g.line(-28 + i * 24, 0, -28 + i * 24, -14, ink, 2);
       }
     },
-    {
-      id: 'art',
-      re: /искусств|выставк|картин|художн|скульптур|инсталляц|галере|арт|перформанс/i,
-      draw: function (g, ink, warm, far) {
-        g.line(-18, 0, -4, -50, ink, 3); g.line(18, 0, 4, -50, ink, 3); g.line(0, -20, 0, 0, ink, 3);
-        g.rect(-22, -56, 44, 34, warm);
-        g.path([[-22, -56], [22, -56], [22, -22], [-22, -22], [-22, -56]], ink, 2);
-        g.poly([[-14, -28], [0, -48], [14, -28]], far);
+    watering: function (g, ink, warm, far) {
+      g.rect(-12, -20, 22, 16, warm);
+      g.path([[-12, -20], [10, -20], [10, -4], [-12, -4], [-12, -20]], ink, 2);
+      g.path([[10, -16], [20, -22], [20, -18]], ink, 3);
+    },
+    globe: function (g, ink, warm, far) {
+      g.line(0, 0, 0, -14, ink, 3); g.line(-10, 0, 10, 0, ink, 3);
+      g.ellipse(0, -36, 22, 22, far);
+      g.ellipse(0, -36, 8, 22, ink === far ? warm : ink);
+      g.ellipse(0, -36, 20, 20, far);
+      g.line(-22, -36, 22, -36, ink, 2);
+      g.path([[-13, -52], [-4, -36], [-13, -20]], ink, 2);
+      g.path([[13, -52], [4, -36], [13, -20]], ink, 2);
+    },
+    calendar: function (g, ink, warm, far) {
+      g.rect(-24, -46, 48, 42, warm);
+      g.path([[-24, -46], [24, -46], [24, -4], [-24, -4], [-24, -46]], ink, 2);
+      g.rect(-24, -46, 48, 9, ink);
+      for (var r = 0; r < 3; r++)
+        for (var c = 0; c < 4; c++) g.rect(-19 + c * 10, -33 + r * 9, 6, 6, far);
+    },
+    coins: function (g, ink, warm, far) {
+      for (var i = 0; i < 3; i++) {
+        g.ellipse(-2 + i * 2, -6 - i * 7, 15, 6, warm);
+        g.path([[-17 + i * 2, -6 - i * 7], [-17 + i * 2, -6 - i * 7]], ink, 2);
       }
+      g.ellipse(2, -27, 15, 6, far);
+    },
+    cart: function (g, ink, warm, far) {
+      g.poly([[-20, -30], [22, -30], [16, -10], [-14, -10]], warm);
+      g.path([[-20, -30], [22, -30], [16, -10], [-14, -10], [-20, -30]], ink, 2);
+      g.path([[-20, -30], [-28, -38]], ink, 3);
+      g.ellipse(-9, -4, 4, 4, ink); g.ellipse(11, -4, 4, 4, ink);
+    },
+    envelope: function (g, ink, warm, far) {
+      g.rect(-24, -30, 48, 30, warm);
+      g.path([[-24, -30], [24, -30], [24, 0], [-24, 0], [-24, -30]], ink, 2);
+      g.path([[-24, -30], [0, -12], [24, -30]], ink, 2);
+    },
+    magnifier: function (g, ink, warm, far) {
+      g.ellipse(-4, -40, 15, 15, far);
+      g.ellipse(-4, -40, 11, 11, warm);
+      g.line(6, -30, 20, -6, ink, 4);
+    },
+    headphones: function (g, ink, warm, far) {
+      g.path([[-20, -20], [-18, -40], [0, -48], [18, -40], [20, -20]], ink, 4);
+      g.rect(-26, -24, 12, 20, far); g.rect(14, -24, 12, 20, far);
+      g.path([[-26, -24], [-14, -24], [-14, -4], [-26, -4], [-26, -24]], ink, 2);
+      g.path([[14, -24], [26, -24], [26, -4], [14, -4], [14, -24]], ink, 2);
+    },
+    clapper: function (g, ink, warm, far) {
+      g.rect(-24, -26, 48, 26, warm);
+      g.path([[-24, -26], [24, -26], [24, 0], [-24, 0], [-24, -26]], ink, 2);
+      g.poly([[-24, -38], [24, -32], [24, -26], [-24, -26]], ink);
+      for (var i = 0; i < 4; i++) g.poly([[-20 + i * 12, -37], [-14 + i * 12, -36], [-18 + i * 12, -27], [-24 + i * 12, -28]], warm);
+    },
+    pot: function (g, ink, warm, far) {
+      g.poly([[-18, -22], [18, -22], [14, 0], [-14, 0]], far);
+      g.path([[-18, -22], [18, -22], [14, 0], [-14, 0], [-18, -22]], ink, 2);
+      g.line(-22, -22, 22, -22, ink, 3);
+      g.path([[-8, -30], [-4, -38], [-10, -46]], ink, 2);
+      g.path([[8, -30], [12, -40], [6, -48]], ink, 2);
+    },
+    flag: function (g, ink, warm, far) {
+      g.line(0, 0, 0, -60, ink, 3);
+      g.poly([[0, -60], [30, -50], [0, -40]], warm);
+      g.path([[0, -60], [30, -50], [0, -40]], ink, 2);
+    },
+    clock: function (g, ink, warm, far) {
+      g.line(0, 0, 0, -18, ink, 3);
+      g.ellipse(0, -40, 20, 20, warm);
+      g.path([[-20, -40], [-20, -40]], ink, 2);
+      g.ellipse(0, -40, 17, 17, far);
+      g.line(0, -40, 0, -52, ink, 3); g.line(0, -40, 10, -36, ink, 3);
+    },
+    frame: function (g, ink, warm, far) {
+      g.rect(-20, -54, 40, 44, warm);
+      g.path([[-20, -54], [20, -54], [20, -10], [-20, -10], [-20, -54]], ink, 2);
+      g.rect(-13, -47, 26, 30, far);
+      g.line(0, -10, 0, 0, ink, 3);
     }
+  };
+
+  /* Тема — это набор предметов. Вейб-кодинг разложен подробно: у бота,
+     дашборда и лендинга не должно быть одного и того же монитора. */
+  var THEMES = [
+    /* Порядок важен: сначала узкое, потом общее — побеждает первое совпадение. */
+
+    /* ——— вейб-кодинг: что люди на самом деле собирают ——— */
+    { id: 'bot',        re: /бот[а-я]*(?![а-яё])|телеграм|telegram|дискорд|discord|вотсап|whatsapp|чат.?бот|автоответ/i,          props: ['chatbubble', 'monitor', 'antenna'] },
+    { id: 'agent',      re: /агент|llm|нейросет|gpt|claude|промпт|автономн|мультиагент|(?<![а-яёa-z])(ии|ai)(?![а-яёa-z])/i, props: ['robotarm', 'chatbubble', 'server'] },
+    { id: 'rag',        re: /база знаний|поиск по|rag\b|эмбеддинг|векторн|семантическ.{0,6}поиск|индекс/i,                 props: ['books', 'magnifier', 'server'] },
+    { id: 'imagegen',   re: /генерац.{0,8}картин|генерац.{0,8}изображ|midjourney|stable diffusion|нейрокартин|аватар/i,    props: ['frame', 'palette', 'monitor'] },
+    { id: 'voice',      re: /голос|речь|транскриб|распознав.{0,6}речи|озвуч|tts|stt|диктофон/i,                            props: ['mic', 'headphones', 'laptop'] },
+    { id: 'videotool',  re: /видеоредакт|нарезк.{0,6}видео|субтитр|рендер.{0,6}видео|шортс|reels|стрим/i,                  props: ['clapper', 'monitor', 'camera'] },
+    { id: 'web',        re: /сайт|лендинг|веб|страничк|портал|витрин/i,                                                    props: ['browser', 'laptop', 'papers'] },
+    { id: 'shop',       re: /магазин|интернет.?магазин|товар|корзин|оплат|подписк|маркетплейс|прайс/i,                     props: ['cart', 'coins', 'browser'] },
+    { id: 'mobile',     re: /мобильн|прилож|ios|android|swift|flutter|react native|(?<![а-яёa-z])app(?![а-яёa-z])/i,       props: ['phone', 'laptop', 'papers'] },
+    { id: 'extension',  re: /расширен.{0,14}браузер|плагин|букмарклет|chrome extension|аддон/i,                             props: ['browser', 'gears', 'terminal'] },
+    { id: 'dashboard',  re: /дашборд|дэшборд|панел|метрик|отчётност|отчетност|табло|мониторинг/i,                          props: ['dashboard', 'monitor', 'papers'] },
+    { id: 'automation', re: /автоматизац|скрипт|пайплайн|вебхук|n8n|zapier|make\.com|крон|бекап/i,                         props: ['gears', 'robotarm', 'cable'] },
+    { id: 'integration',re: /интеграц|api\b|синхрониз|коннектор|обмен данн|импорт|экспорт/i,                               props: ['cable', 'server', 'gears'] },
+    { id: 'data',       re: /данн|база|бд(?![а-яё])|парсер|скрап|аналитик|дата.?сет|sql|таблиц|выгрузк/i,                          props: ['server', 'dashboard', 'papers'] },
+    { id: 'devtool',    re: /инструмент|тул(?![а-яё])|утилит|cli\b|терминал|библиотек|фреймворк|генератор кода|линтер/i,           props: ['terminal', 'laptop', 'cable'] },
+    { id: 'game',       re: /игр[аыуе](?![а-яё])|игров|геймдев|платформер|квест|unity|godot|пиксель.?арт|левел/i,                  props: ['gamepad', 'monitor', 'terminal'] },
+    { id: 'genart',     re: /генератив|шейдер|процедурн|креативн.{0,8}код|three\.?js|p5|воксел|фрактал|визуализатор/i,      props: ['monitor', 'palette', 'easel'] },
+    { id: 'hardware',   re: /железк|ардуин|arduino|распберр|raspberry|датчик|устройств|led|iot|робот|3d.?принт/i,          props: ['antenna', 'cable', 'gears'] },
+    { id: 'notes',      re: /заметк|таск|todo|трекер|планировщ|второй мозг|obsidian|notion|органайзер/i,                   props: ['papers', 'calendar', 'laptop'] },
+    { id: 'calendar',   re: /календар|расписан|букинг|запись на|слот|напоминалк|таймер|помодор/i,                          props: ['calendar', 'clock', 'phone'] },
+    { id: 'finance',    re: /финанс|бюджет|расход|доход|инвест|крипт|бухгалт|счёт|счет[аов]|налог/i,                       props: ['coins', 'dashboard', 'papers'] },
+    { id: 'crm',        re: /crm|клиентск.{0,6}баз|воронк|лид|сделк|продаж.{0,6}учёт/i,                                    props: ['dashboard', 'envelope', 'desk'] },
+    { id: 'mail',       re: /почт|рассыл|письм|инбокс|спам|ньюслеттер|newsletter|подписчик/i,                                       props: ['envelope', 'laptop', 'papers'] },
+    { id: 'social',     re: /соцсет|инстаграм|instagram|тикток|контент.?план|сторис|посты|комьюнити.?платформ/i,           props: ['phone', 'camera', 'dashboard'] },
+    { id: 'map',        re: /карт[аыуе](?![а-яё])|гео|маршрут.{0,6}на карт|локац|навигац|путеводител/i,                             props: ['globe', 'flag', 'phone'] },
+    { id: 'portfolio',  re: /портфолио|резюме|визитк|персональн.{0,8}сайт|о себе/i,                                        props: ['browser', 'frame', 'camera'] },
+    { id: 'edtech',     re: /тренажёр|тренажер|квиз|тест[ыа](?![а-яё])|карточк.{0,6}для запоминан|флешкарт|симулятор обучен/i,     props: ['board', 'phone', 'books'] },
+    { id: 'health',     re: /трекер.{0,10}(сна|привыч|настроен)|дневник самочувств|пульс|шаги|калор/i,                     props: ['dashboard', 'mat', 'phone'] },
+
+    /* ——— проекты не про экран ——— */
+    { id: 'photo',      re: /фотограф|фотопроект|съём|съем|снима|камер|плёнк|пленк|объектив|кадр|портретн/i,               props: ['camera', 'filmreel', 'frame'] },
+    { id: 'film',       re: /фильм|кино|документал|короткометраж|сценар.{0,6}съём|режисс/i,                                props: ['clapper', 'camera', 'easel'] },
+    { id: 'music',      re: /музык|трек|песн|альбом|микрофон|подкаст|саунд|бит(?![а-яё])|синтез|аранжир|концерт/i,                 props: ['mic', 'speaker', 'headphones'] },
+    { id: 'text',       re: /текст|пиш[уе]|стать|книг|роман|сценар|блог|редактур|перевод|дневник|эссе|мемуар/i,           props: ['papers', 'books', 'laptop'] },
+    { id: 'design',     re: /дизайн|интерфейс|макет|бренд|логотип|иллюстрац|верстк|типограф|фигм|(?<![а-яёa-z])(ui|ux)(?![а-яёa-z])/i, props: ['tablet', 'palette', 'monitor'] },
+    { id: 'teach',      re: /курс|лекц|обуч|учеб|студент|воркшоп|мастер.?класс|препода|лаборатор|школ|вебинар|методич/i,   props: ['board', 'papers', 'laptop'] },
+    { id: 'research',   re: /исслед|ресёрч|ресерч|анализ|интервью|гипотез|опрос|разбор|аудит|стратег|конкурент/i,          props: ['board', 'magnifier', 'papers'] },
+    { id: 'art',        re: /искусств|выставк|картин|художн|скульптур|инсталляц|перформанс|арт.?проект|галере/i,           props: ['easel', 'frame', 'palette'] },
+    { id: 'body',       re: /тел[оа](?![а-яё])|спорт|бег(?![а-яё])|йог|танц|здоров|практик|дыхан|медитац|сон(?![а-яё])|привычк|зал(?![а-яё])/i,           props: ['mat', 'dumbbell', 'plantpot'] },
+    { id: 'therapy',    re: /терапи|психолог|выгоран|тревог|самопознан|коуч|рефлекс|границ/i,                              props: ['plantpot', 'papers', 'clock'] },
+    { id: 'lang',       re: /язык|английск|испанск|немецк|словарн|дуолинго|разговорн.{0,6}практик/i,                       props: ['books', 'headphones', 'papers'] },
+    { id: 'home',       re: /ремонт|переезд|кварти|стройк|обустро|мебел|дач|дом(?![а-яё])/i,                                       props: ['boxes', 'ladder', 'frame'] },
+    { id: 'garden',     re: /сад|растен|огород|цвет[ыокав]|лес(?![а-яё])|природ|земл|посад|урожай|ферм/i,                            props: ['beds', 'watering', 'plantpot'] },
+    { id: 'food',       re: /еда|кулинар|рецепт|готов.{0,6}блюд|ресторан|кофе|пекарн|меню/i,                               props: ['pot', 'desk', 'books'] },
+    { id: 'event',      re: /мероприят|фестивал|конференц|вечеринк|ретрит|организ.{0,6}событ|тусовк/i,                     props: ['flag', 'sign', 'board'] },
+    { id: 'community',  re: /сообществ|комьюнити|клуб|кружок|встреч.{0,6}люд|нетворк|коллектив/i,                          props: ['sign', 'desk', 'flag'] },
+    { id: 'travel',     re: /путешеств|поездк|виз[аыу]|маршрут|тур(?![а-яё])|релокац|эмиграц/i,                                    props: ['suitcase', 'globe', 'flag'] },
+    { id: 'archive',    re: /архив|разобрать фот|семейн.{0,6}истор|память|наследи|оцифров|коллекц/i,                       props: ['boxes', 'filmreel', 'books'] },
+    { id: 'business',   re: /бизнес|клиент|запуск|деньг|выручк|услуг|заказ|агентств|стартап|фриланс/i,                     props: ['sign', 'desk', 'coins'] }
   ];
 
-  /* До трёх тем: пространство должно намекать, а не превращаться в склад. */
+  /* Тем может совпасть несколько — берём предметы по кругу, чтобы получилась
+     смесь, а не три одинаковых экрана. */
+  function propsFromThemes(themes) {
+    var out = [];
+    for (var round = 0; round < 3; round++) {
+      for (var i = 0; i < themes.length; i++) {
+        var id = themes[i].props[round];
+        if (id && out.indexOf(id) < 0 && out.length < 4) out.push(id);
+      }
+    }
+    return out;
+  }
+
   function themesOf(text) {
     if (!text) return [];
     var found = [];
@@ -228,6 +451,16 @@
     return found;
   }
 
+  /* Готовый список предметов: сначала то, что уже разобрано снаружи (в том
+     числе моделью), потом ключевые слова. */
+  function propsFor(project) {
+    var p = project || {};
+    if (p.props && p.props.length) {
+      return p.props.filter(function (id) { return PROPS[id]; }).slice(0, 4);
+    }
+    return propsFromThemes(themesOf(p.aboutText || p.about || ''));
+  }
+
   function spaceOf(project) {
     var p = project || {};
     return {
@@ -235,7 +468,7 @@
       result: p.result === undefined ? 0 : p.result,
       rhythm: p.rhythm === undefined ? 0 : p.rhythm,
       wish: wishKind(p.wishText || p.wish),
-      themes: themesOf(p.aboutText || p.about || '')
+      props: propsFor(p)
     };
   }
 
@@ -356,13 +589,15 @@
 
     /* предметы из описания проекта: ближний крупно, остальные дальше и мельче */
     var spots = [
-      { x: W * 0.7,  y: H * 0.9,  k: H / 290 },
-      { x: W * 0.92, y: H * 0.76, k: H / 520 },
-      { x: W * 0.54, y: H * 0.7,  k: H / 820 }
+      { x: W * 0.68, y: H * 0.92, k: H / 290 },
+      { x: W * 0.92, y: H * 0.78, k: H / 480 },
+      { x: W * 0.53, y: H * 0.71, k: H / 780 },
+      { x: W * 0.8,  y: H * 0.68, k: H / 1000 }
     ];
-    S.themes.forEach(function (th, i) {
+    S.props.forEach(function (id, i) {
       var s = spots[i];
-      th.draw(local(pen, s.x, s.y, s.k), L.ink, L.warm, L.far);
+      if (!s || !PROPS[id]) return;
+      PROPS[id](local(pen, s.x, s.y, s.k), L.ink, L.warm, L.far);
     });
 
     return {
@@ -407,7 +642,10 @@
     spaceOf: spaceOf,
     wishKind: wishKind,
     themesOf: themesOf,
+    propsFromThemes: propsFromThemes,
+    propsFor: propsFor,
     THEMES: THEMES,
+    PROPS: PROPS,
     drawSpace: drawSpace,
     canvasPen: canvasPen
   };
