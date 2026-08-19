@@ -58,13 +58,184 @@
     return 'stone';
   }
 
+  /* ------------------------------- темы -------------------------------
+     Пространство должно быть про то, чем человек занят, а не абстрактным
+     пейзажем. Читаем описание проекта по корням и ставим в мир предметы.
+     Рисуются они в локальных координатах: начало — под предметом, единица —
+     примерно человеческий рост, поэтому один и тот же предмет ставится и
+     вблизи, и мелко у горизонта. */
+
+  function local(pen, ox, oy, k) {
+    var P = function (pt) { return [ox + pt[0] * k, oy + pt[1] * k]; };
+    var w = function (v) { return Math.max(1, (v || 2) * k); };
+    return {
+      poly: function (pts, c) { pen.poly(pts.map(P), c); },
+      rect: function (x, y, ww, hh, c) { pen.rect(ox + x * k, oy + y * k, ww * k, hh * k, c); },
+      ellipse: function (cx, cy, rx, ry, c) { pen.ellipse(ox + cx * k, oy + cy * k, rx * k, ry * k, c); },
+      line: function (x0, y0, x1, y1, c, lw) { pen.line(ox + x0 * k, oy + y0 * k, ox + x1 * k, oy + y1 * k, c, w(lw)); },
+      path: function (pts, c, lw) { pen.path(pts.map(P), c, w(lw)); }
+    };
+  }
+
+  var THEMES = [
+    {
+      id: 'photo',
+      re: /фото|съём|съем|снима|камер|плёнк|пленк|объектив|кадр|портрет|видео|монтаж|ролик/i,
+      draw: function (g, ink, warm, far) {
+        g.line(0, 0, -14, -46, ink, 3); g.line(0, 0, 14, -46, ink, 3); g.line(4, 0, 0, -46, ink, 2);
+        g.rect(-16, -64, 32, 20, warm);
+        g.path([[-16, -64], [16, -64], [16, -44], [-16, -44], [-16, -64]], ink, 2);
+        g.ellipse(2, -54, 7, 7, far); g.ellipse(2, -54, 3, 3, ink);
+        g.rect(-13, -68, 8, 4, ink);
+      }
+    },
+    {
+      id: 'sound',
+      re: /музык|звук|трек|песн|альбом|запис.{0,3}звук|микрофон|подкаст|саунд|бит|синтез/i,
+      draw: function (g, ink, warm, far) {
+        g.line(-2, 0, -2, -52, ink, 3);
+        g.ellipse(-2, -58, 6, 8, ink);
+        g.path([[-12, 0], [8, 0]], ink, 3);
+        g.rect(22, -34, 22, 34, warm);
+        g.path([[22, -34], [44, -34], [44, 0], [22, 0], [22, -34]], ink, 2);
+        g.ellipse(33, -24, 6, 6, far); g.ellipse(33, -9, 3, 3, far);
+      }
+    },
+    {
+      id: 'text',
+      re: /текст|пиш|стать|книг|роман|сценар|блог|рассылк|редактур|перевод|дневник|эссе/i,
+      draw: function (g, ink, warm, far) {
+        g.rect(-26, -10, 40, 10, warm);
+        g.rect(-22, -19, 40, 9, warm);
+        g.rect(-25, -27, 38, 8, warm);
+        g.path([[-26, -10], [14, -10], [14, 0], [-26, 0], [-26, -10]], ink, 2);
+        g.path([[-25, -27], [13, -27], [13, -19]], ink, 2);
+        g.poly([[24, -14], [44, -20], [44, -2], [24, -2]], far);
+        g.path([[24, -14], [44, -20], [44, -2], [24, -2], [24, -14]], ink, 2);
+      }
+    },
+    {
+      id: 'code',
+      re: /код|разработ|програм|бот|сервис|приложен|скрипт|бэкенд|фронт|api|дата|модел|нейрон|агент/i,
+      draw: function (g, ink, warm, far) {
+        g.rect(-24, -46, 48, 32, warm);
+        g.path([[-24, -46], [24, -46], [24, -14], [-24, -14], [-24, -46]], ink, 2);
+        g.line(-16, -38, 6, -38, ink, 2); g.line(-16, -32, 14, -32, ink, 2); g.line(-16, -26, -2, -26, ink, 2);
+        g.line(0, -14, 0, -4, ink, 3); g.line(-14, -4, 14, -4, ink, 3);
+        g.path([[26, -8], [38, -16], [50, -6]], far, 3);
+      }
+    },
+    {
+      id: 'design',
+      re: /дизайн|интерфейс|макет|бренд|логотип|иллюстрац|верстк|типограф|сетк|ui|ux/i,
+      draw: function (g, ink, warm, far) {
+        g.rect(-22, -40, 40, 40, warm);
+        g.path([[-22, -40], [18, -40], [18, 0], [-22, 0], [-22, -40]], ink, 2);
+        g.line(-22, -27, 18, -27, far, 2); g.line(-22, -14, 18, -14, far, 2); g.line(-9, -40, -9, 0, far, 2);
+        g.line(26, -4, 34, -44, ink, 3);
+        g.poly([[33, -44], [37, -44], [35, -52]], ink);
+      }
+    },
+    {
+      id: 'teach',
+      re: /курс|лекц|обуч|учеб|студент|воркшоп|мастер.?класс|препода|программ.{0,4}обуч|лаборатор|школ/i,
+      draw: function (g, ink, warm, far) {
+        g.rect(-34, -52, 68, 40, far);
+        g.path([[-34, -52], [34, -52], [34, -12], [-34, -12], [-34, -52]], ink, 2);
+        g.line(-24, -40, 10, -40, warm, 3); g.line(-24, -30, 20, -30, warm, 3);
+        g.line(-26, -12, -26, 0, ink, 3); g.line(26, -12, 26, 0, ink, 3);
+        g.path([[44, 0], [44, -14], [56, -14]], ink, 3); g.line(44, -14, 44, -22, ink, 3);
+      }
+    },
+    {
+      id: 'research',
+      re: /исслед|ресёрч|ресерч|анализ|интервью|гипотез|данн|опрос|разбор|аудит|стратег/i,
+      draw: function (g, ink, warm, far) {
+        g.rect(-30, -54, 60, 44, warm);
+        g.path([[-30, -54], [30, -54], [30, -10], [-30, -10], [-30, -54]], ink, 2);
+        for (var i = 0; i < 3; i++)
+          for (var j = 0; j < 2; j++) g.rect(-24 + i * 18, -48 + j * 18, 12, 12, far);
+        g.line(0, -10, 0, 0, ink, 3);
+        g.ellipse(44, -22, 9, 9, far); g.path([[44, -22], [44, -22]], ink, 2);
+        g.line(50, -16, 58, -4, ink, 3);
+      }
+    },
+    {
+      id: 'body',
+      re: /тел[оа]|спорт|бег|йог|танц|練|здоров|практик|дыхан|медитац|сон|привычк/i,
+      draw: function (g, ink, warm, far) {
+        g.poly([[-38, 0], [-6, -8], [22, -8], [-10, 0]], warm);
+        g.path([[-38, 0], [-6, -8], [22, -8], [-10, 0], [-38, 0]], ink, 2);
+        g.line(26, -10, 52, -10, ink, 3);
+        g.rect(24, -18, 8, 16, ink); g.rect(48, -18, 8, 16, ink);
+      }
+    },
+    {
+      id: 'home',
+      re: /дом|ремонт|переезд|кварти|мастерск|стройк|обустро|мебел|дач/i,
+      draw: function (g, ink, warm, far) {
+        g.rect(-30, -22, 30, 22, warm);
+        g.path([[-30, -22], [0, -22], [0, 0], [-30, 0], [-30, -22]], ink, 2);
+        g.line(-30, -12, 0, -12, ink, 2);
+        g.rect(-24, -40, 22, 18, far);
+        g.path([[-24, -40], [-2, -40], [-2, -22], [-24, -22], [-24, -40]], ink, 2);
+        g.line(16, 0, 24, -46, ink, 3); g.line(38, 0, 30, -46, ink, 3);
+        for (var i = 1; i <= 3; i++) g.line(18 + i * 1.6, -i * 11, 36 - i * 1.6, -i * 11, ink, 2);
+      }
+    },
+    {
+      id: 'garden',
+      re: /сад|растен|огород|цвет|лес|природ|земл|посад|урожай|ферм/i,
+      draw: function (g, ink, warm, far) {
+        for (var i = 0; i < 3; i++) {
+          g.path([[-34 + i * 24, 0], [-28 + i * 24, -12], [-22 + i * 24, 0]], far, 3);
+          g.line(-28 + i * 24, 0, -28 + i * 24, -14, ink, 2);
+        }
+        g.rect(30, -20, 22, 16, warm);
+        g.path([[30, -20], [52, -20], [52, -4], [30, -4], [30, -20]], ink, 2);
+        g.path([[52, -16], [62, -22], [62, -18]], ink, 3);
+      }
+    },
+    {
+      id: 'business',
+      re: /бизнес|клиент|продаж|запуск|деньг|выручк|магазин|услуг|заказ|агентств|стартап/i,
+      draw: function (g, ink, warm, far) {
+        g.rect(-30, -50, 60, 26, warm);
+        g.path([[-30, -50], [30, -50], [30, -24], [-30, -24], [-30, -50]], ink, 2);
+        g.line(-20, -24, -20, 0, ink, 3); g.line(20, -24, 20, 0, ink, 3);
+        g.line(-20, -40, 16, -40, far, 3); g.line(-20, -32, 6, -32, far, 3);
+      }
+    },
+    {
+      id: 'art',
+      re: /искусств|выставк|картин|художн|скульптур|инсталляц|галере|арт|перформанс/i,
+      draw: function (g, ink, warm, far) {
+        g.line(-18, 0, -4, -50, ink, 3); g.line(18, 0, 4, -50, ink, 3); g.line(0, -20, 0, 0, ink, 3);
+        g.rect(-22, -56, 44, 34, warm);
+        g.path([[-22, -56], [22, -56], [22, -22], [-22, -22], [-22, -56]], ink, 2);
+        g.poly([[-14, -28], [0, -48], [14, -28]], far);
+      }
+    }
+  ];
+
+  /* До трёх тем: пространство должно намекать, а не превращаться в склад. */
+  function themesOf(text) {
+    if (!text) return [];
+    var found = [];
+    for (var i = 0; i < THEMES.length && found.length < 3; i++) {
+      if (THEMES[i].re.test(text)) found.push(THEMES[i]);
+    }
+    return found;
+  }
+
   function spaceOf(project) {
     var p = project || {};
     return {
       light: LIGHTS[p.state === undefined ? 0 : p.state] || LIGHTS[0],
       result: p.result === undefined ? 0 : p.result,
       rhythm: p.rhythm === undefined ? 0 : p.rhythm,
-      wish: wishKind(p.wishText || p.wish)
+      wish: wishKind(p.wishText || p.wish),
+      themes: themesOf(p.aboutText || p.about || '')
     };
   }
 
@@ -183,6 +354,17 @@
 
     drawWish(pen, S, Math.round(W * 0.14), Math.round(H * 0.84));
 
+    /* предметы из описания проекта: ближний крупно, остальные дальше и мельче */
+    var spots = [
+      { x: W * 0.7,  y: H * 0.9,  k: H / 290 },
+      { x: W * 0.92, y: H * 0.76, k: H / 520 },
+      { x: W * 0.54, y: H * 0.7,  k: H / 820 }
+    ];
+    S.themes.forEach(function (th, i) {
+      var s = spots[i];
+      th.draw(local(pen, s.x, s.y, s.k), L.ink, L.warm, L.far);
+    });
+
     return {
       standX: Math.round(W * 0.36),
       baseY: Math.round(H * 0.84),
@@ -224,6 +406,8 @@
     LIGHTS: LIGHTS,
     spaceOf: spaceOf,
     wishKind: wishKind,
+    themesOf: themesOf,
+    THEMES: THEMES,
     drawSpace: drawSpace,
     canvasPen: canvasPen
   };

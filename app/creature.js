@@ -32,6 +32,13 @@
     };
   }
 
+  /* Сид уезжает в публичный world.json вместе с существом, поэтому он обязан
+     быть непрозрачным: ни telegram id, ни формулировок человека в нём быть не
+     должно. Два хеша с разной солью дают 64 бита — обратно не разворачивается. */
+  function opaqueSeed(input) {
+    return hashStr('s26a|' + input).toString(36) + hashStr('s26b|' + input).toString(36);
+  }
+
   function pick(rnd, arr) { return arr[Math.floor(rnd() * arr.length) % arr.length]; }
   function between(rnd, a, b) { return a + rnd() * (b - a); }
   function chance(rnd, p) { return rnd() < p; }
@@ -783,6 +790,7 @@
     FADE: FADE,
     rngFrom: rngFrom,
     hashStr: hashStr,
+    opaqueSeed: opaqueSeed,
     genomeCode: genomeCode,
     mapFreeform: mapFreeform,
     mapProjectAnswer: mapProjectAnswer,
