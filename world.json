@@ -1,5 +1,5 @@
 {
-  "updated": 1787221156617,
+  "updated": 1787241525857,
   "creatures": [
     {
       "n": "Сямеби",
@@ -50,6 +50,9 @@
       "fade": "полное",
       "days": 0,
       "p": {
+        "state": 2,
+        "result": 3,
+        "rhythm": 0,
         "wish": "stone",
         "props": [
           "desk",
