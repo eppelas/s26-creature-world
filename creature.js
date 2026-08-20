@@ -764,12 +764,15 @@
     return s;
   }
 
+  /* Кампания идёт три недели, и пропущенные пару дней — это нормальная жизнь,
+     а не повод тускнеть. Улететь можно только по-настоящему пропав. Часы здесь
+     базовые, дальше делятся на терпение из выбранного ритма. */
   var FADE = [
-    { hours: 24,  vitality: 1.00, label: 'полное' },
-    { hours: 48,  vitality: 0.85, label: 'тише' },
-    { hours: 96,  vitality: 0.62, label: 'осыпается' },
-    { hours: 168, vitality: 0.38, label: 'контур намечается' },
-    { hours: 336, vitality: 0.18, label: 'контур' },
+    { hours: 48,  vitality: 1.00, label: 'полное' },
+    { hours: 96,  vitality: 0.85, label: 'тише' },
+    { hours: 168, vitality: 0.62, label: 'осыпается' },
+    { hours: 288, vitality: 0.38, label: 'контур намечается' },
+    { hours: 480, vitality: 0.18, label: 'контур' },
     { hours: 1e9, vitality: 0.04, label: 'улетело' }
   ];
 
