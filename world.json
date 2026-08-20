@@ -1,5 +1,5 @@
 {
-  "updated": 1787158976568,
+  "updated": 1787221156617,
   "creatures": [
     {
       "n": "Сямеби",
@@ -24,6 +24,33 @@
         "result": 2,
         "rhythm": 2,
         "wish": "person",
+        "props": [
+          "desk",
+          "papers",
+          "plantpot"
+        ]
+      }
+    },
+    {
+      "n": "Мешу",
+      "sp": "Роевик ржавый, двуногий трёхрогий",
+      "g": [
+        2,
+        1,
+        2,
+        0,
+        2,
+        3
+      ],
+      "s": "1i9waqi2fg5zt",
+      "st": 1,
+      "stName": "проклюнулся",
+      "at": 1,
+      "v": 1,
+      "fade": "полное",
+      "days": 0,
+      "p": {
+        "wish": "stone",
         "props": [
           "desk",
           "papers",
